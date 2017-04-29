@@ -15,7 +15,7 @@
 
 #define STRING_SIZE 1024
 
-int main(void) {
+int main(int argc, char* argv[]) {
 
    int sock_client;  /* Socket used by client */ 
 
@@ -108,16 +108,32 @@ int main(void) {
    server_addr.sin_port = htons(server_port);
 
    /* user interface */
+	
+	char const* const fileName = argv[1]; /* should check that argc > 1 */
+	printf("%s \n", fileName);
+    FILE* file = fopen(fileName, "r"); /* should check the result */
+    char line[80];
 
-   printf("Please input a sentence:\n");
-   scanf("%s", sentence);
-   msg_len = strlen(sentence) + 1;
+    while (fgets(line, sizeof(line), file)) {
+        /* note that fgets don't strip the terminating \n, checking its
+           presence would allow to handle lines longer that sizeof(line) */
+        printf("%s \n", line); 
+
+	   msg_len = sizeof(line) + 1;
+	   bytes_sent = sendto(sock_client, line, msg_len, 0,
+            (struct sockaddr *) &server_addr, sizeof (server_addr));
+
+    }
+    /* may check feof here to make a difference between eof and io failure -- network
+       timeout for instance */
+
+    fclose(file);
+
+	
 
    /* send message */
   
-   bytes_sent = sendto(sock_client, sentence, msg_len, 0,
-            (struct sockaddr *) &server_addr, sizeof (server_addr));
-
+   
    /* get response from server */
   
    printf("Waiting for response from server...\n");
