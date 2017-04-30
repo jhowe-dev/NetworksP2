@@ -2,6 +2,9 @@
 /* Programmed by Adarsh Sethi */
 /* February 19, 2017 */
 
+/* Updated by John Howe */
+/* May 3rd, 2017 */
+
 /* Version of udp_client.c that is nonblocking */
 
 #include <stdio.h>          /* for standard I/O functions */
