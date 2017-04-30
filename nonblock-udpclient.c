@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
 		memcpy(packet + 4, line, 80);
 		
 		packet[0] = '0';
-		packet[1] = '0';
+		packet[1] = '5';
 		packet[2] = curSequence;
 		packet[3] = '0';
 
