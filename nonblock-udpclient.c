@@ -113,7 +113,6 @@ int main(int argc, char* argv[]) {
    /* user interface */
 	
 	char const* const fileName = argv[1]; /* should check that argc > 1 */
-	printf("%s \n", fileName);
    FILE* file = fopen(fileName, "r"); /* should check the result */
    char line[80];
 	char packet[84];
@@ -122,15 +121,14 @@ int main(int argc, char* argv[]) {
            presence would allow to handle lines longer that sizeof(line) */
       
 		printf("%s \n", line); 
-		printf("%d \n", strlen(line));
 		memcpy(packet + 4, line, 80);
-		packet[0] = 't';
-		packet[1] = 'e';
-		packet[2] = 's';
-		packet[3] = 't';
+		packet[0] = '0';
+		packet[1] = '0';
+		packet[2] = '0';
+		packet[3] = '0';
 		msg_len = sizeof(packet) +1;
 		printf("%s \n", packet);
-		bytes_sent = sendto(sock_client, line, msg_len, 0,
+		bytes_sent = sendto(sock_client, packet, msg_len, 0,
 			(struct sockaddr *) &server_addr, sizeof (server_addr));
 
     }
@@ -138,13 +136,7 @@ int main(int argc, char* argv[]) {
        timeout for instance */
 
     fclose(file);
-
-	
-
-   /* send message */
-  
-   
-   /* get response from server */
+	/* get response from server */
   
    printf("Waiting for response from server...\n");
    
