@@ -6,30 +6,13 @@
 /* May 3rd, 2017 */
 
 /*
-Inputs
-	PacketLossRate - (0, 1)
-	ACKLossRate	- (0, 1)
-
 Steps of Execution
 	1 Print out port number, ask user for config params
 	2 $(Main Actions)
 	3 Print to out.txt
+*/
 
-Main Actions
-	1 Wait for Packet
-	2 When Packet arrives, check count = 0
-		> Break if true
-	3 Call SimulateLoss
-		> Loop if 0 (loss)
-	4 Process Packet
-	5 Call SimulateACKLoss
-		> If 1, generate ACK
-	6 Loop
-
-Simulate Loss
-	1 Generate random variable 0 - 1
-	2 Return (variable < loss_rate)
-	
+/*
 Requirements
 	> Out of sequence or duplicates are discarded
 	> Output recieved data into file (out.txt)
@@ -68,6 +51,7 @@ Statistics
 #include <sys/socket.h>     /* for socket, sendto, and recvfrom */
 #include <netinet/in.h>     /* for sockaddr_in */
 #include <unistd.h>         /* for close */
+#include "udpserver_utility.h" /* server utility structs/functions */
 
 #define STRING_SIZE 1024
 
@@ -77,8 +61,8 @@ Statistics
 
 #define SERV_UDP_PORT 65100
 
-int main(void) {
-
+int main(void) 
+{
    int sock_server;  /* Socket on which server listens to clients */
 
    struct sockaddr_in server_addr;  /* Internet address structure that
@@ -94,9 +78,25 @@ int main(void) {
    unsigned int msg_len;  /* length of message */
    int bytes_sent, bytes_recd; /* number of bytes sent or received */
    unsigned int i;  /* temporary loop variable */
+	float packet_loss_rate;
+	float ack_loss_rate;
 
+	//create stats
+	stats* s = malloc(sizeof(stats));
+	
+	//get loss rates
+	do
+	{	
+		printf("What should the packet loss rate be?\n");
+		scanf("%f", &packet_loss_rate);
+	} while(!(packet_loss_rate >= 0 && packet_loss_rate < 1));
+	
+	do
+	{
+		printf("What should the ACK loss rate be?\n");
+		scanf("%f", &ack_loss_rate);
+	} while(!(ack_loss_rate >= 0 && ack_loss_rate < 1)); 
    /* open a socket */
-
    if ((sock_server = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
       perror("Server: can't open datagram socket\n");
       exit(1);
@@ -128,6 +128,19 @@ int main(void) {
 
    client_addr_len = sizeof (client_addr);
 
+	/*
+	Main Actions
+		1 Wait for Packet
+		2 When Packet arrives, check count = 0
+			> Break if true
+		3 Call SimulateLoss
+			> Loop if 0 (loss)
+		4 Process Packet
+		5 Call SimulateACKLoss
+			> If 1, generate ACK
+		6 Loop
+	*/
+
    for (;;) {
 
       bytes_recd = recvfrom(sock_server, &sentence, STRING_SIZE, 0,
@@ -146,4 +159,6 @@ int main(void) {
       bytes_sent = sendto(sock_server, modifiedSentence, msg_len, 0,
                (struct sockaddr*) &client_addr, client_addr_len);
    }
+
+	return 0;
 }
