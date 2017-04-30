@@ -16,7 +16,7 @@ typedef enum {false, true} bool;
 bool simulate_loss(float loss_rate)
 {
 	double result = (double)rand() / (double)RAND_MAX;
-	return (result < loss_rate);
+	return (result > loss_rate);
 }
 
 typedef struct 
@@ -53,9 +53,41 @@ typedef struct
 } 
 stats;
 
-void print_stats(stats* s)
+stats create_stats()
 {
+	stats s;
+	s.successful_recv_packets = 0;
+	s.data_bytes_sent = 0;
+	s.duplicate_packets = 0;
+	s.lost_packets = 0;
+	s.total_recv_packets = 0;
+	s.acks_generated = 0;
+	s.acks_without_loss = 0;
+	s.acks_lost = 0;
+	s.total_time = 0;
+	return s;
 }
+
+void print_separator()
+{
+	printf("---------------------------------------------------\n");
+}
+
+void print_stats(stats s)
+{
+	print_separator();
+	printf("Total Recieved Packets : %d\n", s.total_recv_packets);
+	printf("Successful Recieved Packets : %d\n", s.successful_recv_packets);
+	printf("Duplicate Packets : %d\n", s.duplicate_packets);
+	printf("Data Bytes Sent : %d\n", s.data_bytes_sent);
+	printf("Lost Packets : %d\n", s.lost_packets);
+	printf("ACKS Generated : %d\n", s.acks_generated);
+	printf("ACKS Lost : %d\n", s.acks_lost);
+	printf("ACKS Generated Without Loss : %d\n", s.acks_without_loss);
+	printf("Total Time : %d\n", s.total_time);
+	print_separator();
+}
+
 
 /*
 Requirements

@@ -82,7 +82,7 @@ int main(void)
 	float ack_loss_rate;
 
 	//create stats
-	stats s;
+	stats s = create_stats();
 	
 	//get loss rates
 	do
@@ -145,28 +145,28 @@ int main(void)
 
       bytes_recd = recvfrom(sock_server, &sentence, STRING_SIZE, 0,
                      (struct sockaddr *) &client_addr, &client_addr_len);
-      printf("Received packet is: %s with length %d\n\n",
-                         sentence, bytes_recd);
-
-		s.total_recv_packets += 1;
 
 		char count[] = {sentence[0], sentence[1], '\0'};
 		char seq_number[] = {sentence[2], sentence[3], '\0'};
 		
 		printf("Packet %s recieved with %s data bytes\n", seq_number, count);
+		s.total_recv_packets += 1;
 
-		//break out of the loop if count = 0
+		//break out of the loop if count = 0, EOT Packet
 		if(count[1] == '0')
 		{
-			printf("EOT recieved!\n");
+			printf("End of Transmission Packet with Sequence Number %s recieved with %s data bytes\n", seq_number, count);
+			s.successful_recv_packets += 1;
 			break;
 		}
 
 		//if there was no loss
 		if(simulate_loss(packet_loss_rate) == 1)
 		{
+			s.successful_recv_packets += 1;
+
 			/* generate an ACK */
-			msg_len = sizeof(char) * 2;
+			msg_len = sizeof(char) * 2 + 1;
 			ack[0] = 0;
 			ack[1] = (seq_number[1] == 0)? (1):(0);
 			s.acks_generated += 1;
@@ -183,17 +183,18 @@ int main(void)
 			//there was an ack loss
 			else
 			{
-				s.acks_lost += 1;
 				printf("ACK %s lost\n", ack[1]);
+				s.acks_lost += 1;
 			}
 		}
 		//there was a packet loss
 		else
 		{
-			s.lost_packets += 1;
 			printf("Packet %s lost\n", seq_number);
+			s.lost_packets += 1;
 		}
    }
 
+	print_stats(s);
 	return 0;
 }
