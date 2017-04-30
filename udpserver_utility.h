@@ -53,6 +53,10 @@ typedef struct
 } 
 stats;
 
+void print_stats(stats* s)
+{
+}
+
 /*
 Requirements
 	> Out of sequence or duplicates are discarded
