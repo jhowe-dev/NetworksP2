@@ -21,7 +21,7 @@
 int main(int argc, char* argv[]) {
 
    int sock_client;  /* Socket used by client */ 
-
+   int timeout;
    struct sockaddr_in client_addr;  /* Internet address structure that
                                         stores client address */
    unsigned short client_port;  /* Port number used by client (local port) */
@@ -96,13 +96,13 @@ int main(int argc, char* argv[]) {
    printf("Enter hostname of server: ");
    scanf("%s", server_hostname);
    if ((server_hp = gethostbyname(server_hostname)) == NULL) {
-      perror("Client: invalid server hostname\n");
+      perror("Client: invalid server hostname");
       close(sock_client);
       exit(1);
    }
    printf("Enter port number for server: ");
    scanf("%hu", &server_port);
-
+  
    /* Clear server address structure and initialize with server address */
    memset(&server_addr, 0, sizeof(server_addr));
    server_addr.sin_family = AF_INET;
@@ -114,17 +114,24 @@ int main(int argc, char* argv[]) {
 	
 	char const* const fileName = argv[1]; /* should check that argc > 1 */
 	printf("%s \n", fileName);
-    FILE* file = fopen(fileName, "r"); /* should check the result */
-    char line[80];
-
-    while (fgets(line, sizeof(line), file)) {
+   FILE* file = fopen(fileName, "r"); /* should check the result */
+   char line[80];
+	char packet[84];
+   while (fgets(line, sizeof(line), file)) {
         /* note that fgets don't strip the terminating \n, checking its
            presence would allow to handle lines longer that sizeof(line) */
-        printf("%s \n", line); 
-
-	   msg_len = sizeof(line) + 1;
-	   bytes_sent = sendto(sock_client, line, msg_len, 0,
-            (struct sockaddr *) &server_addr, sizeof (server_addr));
+      
+		printf("%s \n", line); 
+		printf("%d \n", strlen(line));
+		memcpy(packet + 4, line, 80);
+		packet[0] = 't';
+		packet[1] = 'e';
+		packet[2] = 's';
+		packet[3] = 't';
+		msg_len = sizeof(packet) +1;
+		printf("%s \n", packet);
+		bytes_sent = sendto(sock_client, line, msg_len, 0,
+			(struct sockaddr *) &server_addr, sizeof (server_addr));
 
     }
     /* may check feof here to make a difference between eof and io failure -- network
