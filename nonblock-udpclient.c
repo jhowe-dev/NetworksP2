@@ -15,7 +15,8 @@
 #include <netinet/in.h>     /* for sockaddr_in */
 #include <unistd.h>         /* for close */
 #include <fcntl.h>          /* for fcntl */
-
+#include <sys/time.h>
+#include <math.h>
 #define STRING_SIZE 1024
 
 int main(int argc, char* argv[]) {
@@ -40,7 +41,13 @@ int main(int argc, char* argv[]) {
 
    int fcntl_flags; /* flags used by the fcntl function to set socket
                        for non-blocking operation */
-
+	int packets_sent;
+	int total_bytes_sent;
+	int retrans;
+	int total_packets_sent; //including retrans
+	int timeouts;
+	int acks_received;
+	double elapsed_time;
   
    /* open a socket */
 
@@ -113,23 +120,61 @@ int main(int argc, char* argv[]) {
    /* user interface */
 	
 	char const* const fileName = argv[1]; /* should check that argc > 1 */
-   FILE* file = fopen(fileName, "r"); /* should check the result */
-   char line[80];
+	int tout = atoi(argv[2]);
+	double const timeout_value = pow(10.0, (double)tout);
+	printf("%lf \n",timeout_value);
+   
+	FILE* file = fopen(fileName, "r"); /* should check the result */
+   
+	char line[80];
 	char packet[84];
+
+	char curSequence = '0';
+
+
+	struct timeval startTime;
+	struct timeval currentTime;
    while (fgets(line, sizeof(line), file)) {
         /* note that fgets don't strip the terminating \n, checking its
            presence would allow to handle lines longer that sizeof(line) */
-      
-		printf("%s \n", line); 
 		memcpy(packet + 4, line, 80);
+		
 		packet[0] = '0';
 		packet[1] = '0';
-		packet[2] = '0';
+		packet[2] = curSequence;
 		packet[3] = '0';
+
 		msg_len = sizeof(packet) +1;
 		printf("%s \n", packet);
 		bytes_sent = sendto(sock_client, packet, msg_len, 0,
 			(struct sockaddr *) &server_addr, sizeof (server_addr));
+		if(curSequence == '0')
+		{
+			curSequence = '1';
+		}
+		else
+		{
+			curSequence = '0';
+		}
+
+		printf("Waiting for response from server...\n");
+		gettimeofday(&startTime,NULL);
+		int sts = startTime.tv_sec;
+		int stm = startTime.tv_usec;
+		printf("Seconds: %d \n",sts);
+		printf("MSeconds: %d \n", stm);
+		do {  /* loop required because socket is nonblocking */
+			bytes_recd = recvfrom(sock_client, modifiedSentence, STRING_SIZE, 0,
+						 (struct sockaddr *) 0, (int *) 0);
+
+			/* Note: you can do something else in this loop while
+				waiting for a response from the server
+			*/
+		}
+		while (bytes_recd <= 0);
+
+		printf("\nThe response from server is:\n");
+		printf("%s\n\n", modifiedSentence);
 
     }
     /* may check feof here to make a difference between eof and io failure -- network
@@ -138,20 +183,7 @@ int main(int argc, char* argv[]) {
     fclose(file);
 	/* get response from server */
   
-   printf("Waiting for response from server...\n");
    
-   do {  /* loop required because socket is nonblocking */
-      bytes_recd = recvfrom(sock_client, modifiedSentence, STRING_SIZE, 0,
-                (struct sockaddr *) 0, (int *) 0);
-      /* Note: you can do something else in this loop while
-         waiting for a response from the server
-      */
-   }
-   while (bytes_recd <= 0);
-
-   printf("\nThe response from server is:\n");
-   printf("%s\n\n", modifiedSentence);
-
    /* close the socket */
 
    close (sock_client);
