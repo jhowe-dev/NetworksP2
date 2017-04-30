@@ -2,6 +2,65 @@
 /* Programmed by Adarsh Sethi */
 /* February 19, 2017 */
 
+/* Updated by Alex Szostek */
+/* May 3rd, 2017 */
+
+/*
+Inputs
+	PacketLossRate - (0, 1)
+	ACKLossRate	- (0, 1)
+
+Steps of Execution
+	1 Print out port number, ask user for config params
+	2 $(Main Actions)
+	3 Print to out.txt
+
+Main Actions
+	1 Wait for Packet
+	2 When Packet arrives, check count = 0
+		> Break if true
+	3 Call SimulateLoss
+		> Loop if 0 (loss)
+	4 Process Packet
+	5 Call SimulateACKLoss
+		> If 1, generate ACK
+	6 Loop
+
+Simulate Loss
+	1 Generate random variable 0 - 1
+	2 Return (variable < loss_rate)
+	
+Requirements
+	> Out of sequence or duplicates are discarded
+	> Output recieved data into file (out.txt)
+	> Input files are 80 chars/line
+	> Messages contain 1 line per packet
+	> No checksums
+
+Print Statements
+	> Packet n recieved with c data bytes
+	> Duplicate packet n recieved with c data bytes
+	> Packet n lost
+	> ACK n transmitted
+	> ACK n lost
+	> End of Transmission Packet with (sequence number n) recieved with c data bytes
+
+Statistics
+	> Number of data packets received successfully (without loss, without duplicates)
+	> Total number of data bytes received which are delivered to user (this should be the sum of the count
+	fields of all packets received successfully without loss without duplicates)
+	> Total number of duplicate data packets received (without loss)
+	> Number of data packets received but dropped due to loss
+	> Total number of data packets received (including those that were successful, those lost, and duplicates)
+	> Number of ACKs transmitted without loss
+	> Number of ACKs generated but dropped due to loss
+	> Total number of ACKs generated (with and without loss)
+	> Total elapsed time from start to end in milliseconds as measured by calls to gettimeofday() (This
+	 (time should be measured from the instant when the Receiver finishes opening the connection with
+	 the Sender to the instant when the Receiver closes the output file.)
+
+*/
+
 #include <ctype.h>          /* for toupper */
 #include <stdio.h>          /* for standard I/O functions */
 #include <stdlib.h>         /* for exit */
