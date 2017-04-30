@@ -130,7 +130,8 @@ int main(int argc, char* argv[]) {
 	char packet[84];
 
 	char curSequence = '0';
-
+	
+	char currentAck;
 
 	struct timeval startTime;
 	struct timeval currentTime;
@@ -157,16 +158,21 @@ int main(int argc, char* argv[]) {
 			curSequence = '0';
 		}
 
-		printf("Waiting for response from server...\n");
 		gettimeofday(&startTime,NULL);
 		int sts = startTime.tv_sec;
-		int stm = startTime.tv_usec;
+		int st = startTime.tv_usec;
+		double stm = startTime.tv_usec / 1000000.0;
+		int cts;
+		double ctm;
 		printf("Seconds: %d \n",sts);
-		printf("MSeconds: %d \n", stm);
+		printf("MSeconds: %lf as Integer: %d \n", stm, st);
 		do {  /* loop required because socket is nonblocking */
 			bytes_recd = recvfrom(sock_client, modifiedSentence, STRING_SIZE, 0,
 						 (struct sockaddr *) 0, (int *) 0);
-
+			gettimeofday(&currentTime, NULL);
+			cts = currentTime.tv_sec;
+			ctm = currentTime.tv_usec / 1000000.0;
+			printf("Start:%lf Current:%lf \n", stm, ctm);			
 			/* Note: you can do something else in this loop while
 				waiting for a response from the server
 			*/
