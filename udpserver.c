@@ -74,7 +74,7 @@ int main(void)
    unsigned int client_addr_len;  /* Length of client address structure */
 
    char sentence[STRING_SIZE];  /* receive message */
-   char modifiedSentence[STRING_SIZE]; /* send message */
+   char ack[STRING_SIZE]; /* send message */
    unsigned int msg_len;  /* length of message */
    int bytes_sent, bytes_recd; /* number of bytes sent or received */
    unsigned int i;  /* temporary loop variable */
@@ -145,19 +145,53 @@ int main(void)
 
       bytes_recd = recvfrom(sock_server, &sentence, STRING_SIZE, 0,
                      (struct sockaddr *) &client_addr, &client_addr_len);
-      printf("Received Sentence is: %s\n     with length %d\n\n",
+      printf("Received packet is: %s with length %d\n\n",
                          sentence, bytes_recd);
 
-      /* prepare the message to send */
+		s->total_recv_packets++;
 
-      msg_len = bytes_recd;
-      for (i=0; i<msg_len; i++)
-         modifiedSentence[i] = toupper (sentence[i]);
+		char count[] = {sentence[0], sentence[1]};
+		char seq_number[] = {sentence[2], sentence[3]};
+		
+		printf("Packet %s recieved with %s data bytes\n", seq_number, count);
 
-      /* send message */
- 
-      bytes_sent = sendto(sock_server, modifiedSentence, msg_len, 0,
-               (struct sockaddr*) &client_addr, client_addr_len);
+		//break out of the loop if count = 0
+		if(count == '00')
+		{
+			break;
+		}
+
+		//if there was no loss
+		if(simulate_loss(packet_loss_rate) == 1)
+		{
+			/* generate an ACK */
+			msg_len = sizeof(char) * 2;
+			ack[0] = 0;
+			ack[1] = (seq_number[1] == 0)? (1):(0);
+			stats->acks_generated++;
+
+			//if there was no ack loss
+			if(simulate_loss(ack_loss_rate) == 1)	
+			{
+				/* send message */
+				bytes_sent = sendto(sock_server, ack, msg_len, 0,
+							(struct sockaddr*) &client_addr, client_addr_len);
+				stats->acks_without_loss++;
+				printf("ACK %c transmitted", ack[1]);
+			}
+			//there was an ack loss
+			else
+			{
+				stats->acks_lost++;
+				printf("ACK %s lost", ack[1]);
+			}
+		}
+		//there was a packet loss
+		else
+		{
+			stats->lost_packets++;
+			printf("Packet %s lost", seq_number);
+		}
    }
 
 	return 0;
