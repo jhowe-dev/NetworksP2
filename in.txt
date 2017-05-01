@@ -1,4 +1,2 @@
 Hello!
-My name is Alex.
-This is a test of Project 2.
 Goodbye!

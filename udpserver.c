@@ -75,11 +75,11 @@ int main(void)
    unsigned int client_addr_len;  /* Length of client address structure */
 
    char sentence[STRING_SIZE];  /* receive message */
-   unsigned int msg_len;  /* length of message */
-   int bytes_sent, bytes_recd; /* number of bytes sent or received */
+   unsigned int msg_len;  /* length of message */ int bytes_sent, bytes_recd; /* number of bytes sent or received */
    unsigned int i;  /* temporary loop variable */
-	float packet_loss_rate;
-	float ack_loss_rate;
+	float packet_loss_rate; /* user-defined simulated packet loss rate */
+	float ack_loss_rate; /* user-defined simulated ack loss rate */
+	char expected_sequence_num = '0'; /* expected sequence number from client */
 
 	//create stats
 	stats s = create_stats();
@@ -128,20 +128,9 @@ int main(void)
 
    client_addr_len = sizeof (client_addr);
 
-	/*
-	Main Actions
-		1 Wait for Packet
-		2 When Packet arrives, check count = 0
-			> Break if true
-		3 Call SimulateLoss
-			> Loop if 0 (loss)
-		4 Process Packet
-		5 Call SimulateACKLoss
-			> If 1, generate ACK
-		6 Loop
-	*/
-
-   for (;;) {
+	print_separator();
+   for (;;) 
+	{
 
       bytes_recd = recvfrom(sock_server, &sentence, STRING_SIZE, 0,
                      (struct sockaddr *) &client_addr, &client_addr_len);
@@ -149,13 +138,13 @@ int main(void)
 		char count[] = {sentence[0], sentence[1], '\0'};
 		char seq_number[] = {sentence[2], sentence[3], '\0'};
 		
-		printf("Packet %s recieved with %s data bytes\n", seq_number, count);
+		printf("Packet %c recieved with %s data bytes\n", seq_number[0], count);
 		s.total_recv_packets += 1;
 
 		//break out of the loop if count = 0, EOT Packet
 		if(count[1] == '0')
 		{
-			printf("End of Transmission Packet with Sequence Number %s recieved with %s data bytes\n", seq_number, count);
+			printf("End of Transmission Packet with Sequence Number %c recieved with %s data bytes\n", seq_number[0], count);
 			s.successful_recv_packets += 1;
 			break;
 		}
@@ -172,6 +161,17 @@ int main(void)
 			ack[1] = seq_number[1];
 			s.acks_generated += 1;
 			printf("ACK %c generated\n", ack[0]);
+
+			if(seq_number[0] != expected_sequence_num)
+			{
+				printf("Duplicate Packet %c recieved with %s data bytes\n", seq_number[0], count);
+				s.duplicate_packets += 1;
+			}
+			else
+			{
+				expected_sequence_num = (expected_sequence_num == '0')? '1':'0';
+				s.data_bytes_sent += (count[0] - '0') + (count[1] - '0');
+			}
 
 			//if there was no ack loss
 			if(simulate_loss(ack_loss_rate) == 1)	
@@ -192,10 +192,11 @@ int main(void)
 		//there was a packet loss
 		else
 		{
-			printf("Packet %s lost\n", seq_number);
+			printf("Packet %c lost\n", seq_number[0]);
 			s.lost_packets += 1;
 		}
-   }
 
+		print_separator();
+   }
 	print_stats(s);
 }
