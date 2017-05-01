@@ -122,8 +122,10 @@ int main(void)
       exit(1);
    }
 
-   /* wait for incoming messages in an indefinite loop */
+	/* Open output file for writing */
+	FILE* outfile = fopen("out.txt", "w+");
 
+   /* wait for incoming messages in an indefinite loop */
    printf("Waiting for incoming messages on port %hu\n\n", 
                            server_port);
 
@@ -171,6 +173,8 @@ int main(void)
 			}
 			else
 			{
+				//packet wasn't lost and it's not a duplicate means we can write to file
+				fputs(&sentence[4], outfile);
 				//flip the sequence number
 				expected_sequence_num = (expected_sequence_num == '0')? '1':'0';
 				//since we're using a character array, we need to convert from char to int
@@ -201,5 +205,6 @@ int main(void)
 		}
 		print_separator();
    }
+	fclose(outfile);
 	print_stats(s);
 }
