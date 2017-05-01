@@ -54,6 +54,7 @@ Statistics
 #include "udpserver_utility.h" /* server utility structs/functions */
 
 #define STRING_SIZE 1024
+#define ACK_SIZE 2
 
 /* SERV_UDP_PORT is the port number on which the server listens for
    incoming messages from clients. You should change this to a different
@@ -74,7 +75,6 @@ int main(void)
    unsigned int client_addr_len;  /* Length of client address structure */
 
    char sentence[STRING_SIZE];  /* receive message */
-   char ack[STRING_SIZE]; /* send message */
    unsigned int msg_len;  /* length of message */
    int bytes_sent, bytes_recd; /* number of bytes sent or received */
    unsigned int i;  /* temporary loop variable */
@@ -167,9 +167,12 @@ int main(void)
 
 			/* generate an ACK */
 			msg_len = sizeof(char) * 2 + 1;
-			ack[0] = 0;
-			ack[1] = (seq_number[1] == 0)? (1):(0);
+			char* ack = malloc(msg_len); /* send message */
+			ack[0] = seq_number[0];
+			ack[1] = seq_number[1];
 			s.acks_generated += 1;
+			printf("ACK %c generated\n", ack[1]);
+
 
 			//if there was no ack loss
 			if(simulate_loss(ack_loss_rate) == 1)	
@@ -183,7 +186,7 @@ int main(void)
 			//there was an ack loss
 			else
 			{
-				printf("ACK %s lost\n", ack[1]);
+				printf("ACK %c lost\n", ack[1]);
 				s.acks_lost += 1;
 			}
 		}
@@ -196,5 +199,4 @@ int main(void)
    }
 
 	print_stats(s);
-	return 0;
 }
