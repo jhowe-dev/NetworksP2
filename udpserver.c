@@ -96,6 +96,7 @@ int main(void)
 		printf("What should the ACK loss rate be?\n");
 		scanf("%f", &ack_loss_rate);
 	} while(!(ack_loss_rate >= 0 && ack_loss_rate < 1)); 
+
    /* open a socket */
    if ((sock_server = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
       perror("Server: can't open datagram socket\n");
@@ -135,9 +136,9 @@ int main(void)
       bytes_recd = recvfrom(sock_server, &sentence, STRING_SIZE, 0,
                      (struct sockaddr *) &client_addr, &client_addr_len);
 
+		//break down packet	
 		char count[] = {sentence[0], sentence[1], '\0'};
 		char seq_number[] = {sentence[2], sentence[3], '\0'};
-		
 		printf("Packet %c recieved with %s data bytes\n", seq_number[0], count);
 		s.total_recv_packets += 1;
 
@@ -162,6 +163,7 @@ int main(void)
 			s.acks_generated += 1;
 			printf("ACK %c generated\n", ack[0]);
 
+			//if the recieved sequence number is not the expected num, it's a duplciate (RDT 3.1)
 			if(seq_number[0] != expected_sequence_num)
 			{
 				printf("Duplicate Packet %c recieved with %s data bytes\n", seq_number[0], count);
@@ -169,7 +171,9 @@ int main(void)
 			}
 			else
 			{
+				//flip the sequence number
 				expected_sequence_num = (expected_sequence_num == '0')? '1':'0';
+				//since we're using a character array, we need to convert from char to int
 				s.data_bytes_sent += (count[0] - '0') + (count[1] - '0');
 			}
 
@@ -195,7 +199,6 @@ int main(void)
 			printf("Packet %c lost\n", seq_number[0]);
 			s.lost_packets += 1;
 		}
-
 		print_separator();
    }
 	print_stats(s);
