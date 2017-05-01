@@ -18,7 +18,6 @@
 #include <sys/time.h>
 #include <math.h>
 #define STRING_SIZE 1024
-
 int main(int argc, char* argv[]) {
 
    int sock_client;  /* Socket used by client */ 
@@ -41,12 +40,12 @@ int main(int argc, char* argv[]) {
 
    int fcntl_flags; /* flags used by the fcntl function to set socket
                        for non-blocking operation */
-	int packets_sent;
-	int total_bytes_sent;
-	int retrans;
-	int total_packets_sent; //including retrans
-	int timeouts;
-	int acks_received;
+	int packets_sent = 0;
+	int total_bytes_sent = 0;
+	int retransmitted_packets = 0;
+	int total_packets_sent = 0; //including retrans
+	int timeouts = 0;
+	int acks_received = 0;
 	double elapsed_time;
   
    /* open a socket */
@@ -132,55 +131,122 @@ int main(int argc, char* argv[]) {
 	char curSequence = '0';
 	
 	char currentAck;
-
-	struct timeval startTime;
-	struct timeval currentTime;
-   while (fgets(line, sizeof(line), file)) {
-        /* note that fgets don't strip the terminating \n, checking its
-           presence would allow to handle lines longer that sizeof(line) */
+	//TODO CLean this up.  Get those Doc points
+	while (fgets(line, sizeof(line), file)) {
+		//move the read line into the packet array
 		memcpy(packet + 4, line, 80);
 		
+		//TODO add in correct size info..
 		packet[0] = '0';
 		packet[1] = '5';
+		
+		//Sequence number
 		packet[2] = curSequence;
 		packet[3] = '0';
 
 		msg_len = sizeof(packet) +1;
+		//debug info, shows packet structure
 		printf("%s \n", packet);
-		bytes_sent = sendto(sock_client, packet, msg_len, 0,
-			(struct sockaddr *) &server_addr, sizeof (server_addr));
-		if(curSequence == '0')
-		{
-			curSequence = '1';
-		}
-		else
-		{
-			curSequence = '0';
-		}
 
-		gettimeofday(&startTime,NULL);
-		int sts = startTime.tv_sec;
-		int st = startTime.tv_usec;
-		double stm = startTime.tv_usec / 1000000.0;
-		int cts;
+		/*Create the variables to store the times before starting time!*/
+		//Stores the Current time during wait
+		double cts;
 		double ctm;
-		printf("Seconds: %d \n",sts);
-		printf("MSeconds: %lf as Integer: %d \n", stm, st);
+		double ct;
+		double difference;
+		
+		//indicates a timeout
+		int timeout_flag = 0;
+
+		//structs for times
+		struct timeval startTime;
+		struct timeval currentTime;
+
+		//initially send the packet
+		bytes_sent = sendto(sock_client, packet, sizeof(packet) +1, 0,
+				(struct sockaddr *) &server_addr, sizeof (server_addr));
+		
+		//get initial time
+		gettimeofday(&startTime,NULL);
+		
+		//Used to store the times for calculating timeouts
+		double sts = startTime.tv_sec * 1000000.0;
+		double stm = startTime.tv_usec;
+		double st = stm + sts;
+						
 		do {  /* loop required because socket is nonblocking */
+			if(timeout_flag == 1)
+			{
+				bytes_sent = sendto(sock_client, packet, sizeof(packet) +1, 0,
+				(struct sockaddr *) &server_addr, sizeof (server_addr));
+	
+				printf("Packet resent: %s \n",packet);	
+				
+				//re-get time
+				gettimeofday(&startTime,NULL);				
+				
+				//recalculate start time
+				sts = startTime.tv_sec * 1000000.0;//convert seconds to usec
+				stm = startTime.tv_usec;
+				st = stm + sts;
+				timeout_flag = 0;
+			}//retransmit packet on loss (of any kind)
+			
+			//non-blocking receive 
 			bytes_recd = recvfrom(sock_client, modifiedSentence, STRING_SIZE, 0,
 						 (struct sockaddr *) 0, (int *) 0);
+			
+			//get the current time for timeout calculation
 			gettimeofday(&currentTime, NULL);
-			cts = currentTime.tv_sec;
-			ctm = currentTime.tv_usec / 1000000.0;
-			printf("Start:%lf Current:%lf \n", stm, ctm);			
+
+			//calculate current time (in usec)
+			cts = currentTime.tv_sec * 1000000.0;
+			ctm = currentTime.tv_usec;
+			ct = cts + ctm;
+			
+			//elapsed time (in usec)
+			difference = ct - st;
+			
+			//check for timeout			
+			if(difference > timeout_value)
+			{
+				printf("Timeout Detected! \n");
+				//debug info ---
+				printf("Start Time: %lf, Current Time:%lf \n",st, ct);
+				printf("Time Taken: %lf Threshold: %lf \n", difference, timeout_value);
+				//---TODO remove
+				
+				printf("Retransmitting packet!...\n");
+				
+				bytes_recd = 0; // ensure that the packet gets resent;
+				
+				//set the resend flag
+				timeout_flag = 1;
+
+				//for the final statistics
+				timeouts++;
+				retransmitted_packets++;
+			}
+			else{
+				//debug info
+				printf("Current time: %lf ; Start Time: %lf \n", ct, st);
+				printf("Difference: %lf \n",difference);
+			}
 			/* Note: you can do something else in this loop while
 				waiting for a response from the server
 			*/
 		}
 		while (bytes_recd <= 0);
-
-		printf("\nThe response from server is:\n");
-		printf("%s\n\n", modifiedSentence);
+		
+		printf("Success on packet \n");	
+		
+		//flip sequence number
+		if(curSequence == '0')
+		{curSequence = '1';}
+		else
+		{curSequence = '0';}
+		
+		printf("\nThe server responded!\n");//TODO print ACK number or something
 
     }
     /* may check feof here to make a difference between eof and io failure -- network
@@ -193,4 +259,5 @@ int main(int argc, char* argv[]) {
    /* close the socket */
 
    close (sock_client);
-}
+}//main
+
