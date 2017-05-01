@@ -139,7 +139,26 @@ int main(int argc, char* argv[]) {
 		//TODO add in correct size info..
 		packet[0] = '0';
 		packet[1] = '5';
-		
+		int str = (int) strlen(line);
+		int firstDigit = 0;
+		int lastDigit = 0;
+		printf("%d \n", str);
+		if(str > 10)
+		{
+			firstDigit = str / 10;
+			lastDigit = str % 10;	
+			printf("Tens: %d, ones:%d \n",firstDigit,lastDigit);
+		}
+		else
+		{
+			lastDigit = str % 10;
+			printf("Ones: %d \n",lastDigit);
+		}
+		char first = '0' + firstDigit;
+		char last = '0' + lastDigit;
+		packet[0] = first;
+		packet[1] = last;
+		printf("Packet: %s\n",packet);
 		//Sequence number
 		packet[2] = curSequence;
 		packet[3] = '0';
@@ -212,7 +231,6 @@ int main(int argc, char* argv[]) {
 			{
 				printf("Timeout Detected! \n");
 				//debug info ---
-				printf("Start Time: %lf, Current Time:%lf \n",st, ct);
 				printf("Time Taken: %lf Threshold: %lf \n", difference, timeout_value);
 				//---TODO remove
 				
@@ -230,7 +248,6 @@ int main(int argc, char* argv[]) {
 			else{
 				//debug info
 				printf("Current time: %lf ; Start Time: %lf \n", ct, st);
-				printf("Difference: %lf \n",difference);
 			}
 			/* Note: you can do something else in this loop while
 				waiting for a response from the server
@@ -247,13 +264,14 @@ int main(int argc, char* argv[]) {
 		{curSequence = '0';}
 		
 		printf("\nThe server responded!\n");//TODO print ACK number or something
-
     }
-    /* may check feof here to make a difference between eof and io failure -- network
-       timeout for instance */
-
-    fclose(file);
-	/* get response from server */
+	
+	char goodbye[2];
+	goodbye[0]='0';
+	goodbye[1]='0';
+   fclose(file);
+	bytes_sent = sendto(sock_client, goodbye, sizeof(goodbye)+1, 0,
+				(struct sockaddr *) &server_addr, sizeof (server_addr));
   
    
    /* close the socket */
