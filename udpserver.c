@@ -167,12 +167,11 @@ int main(void)
 
 			/* generate an ACK */
 			msg_len = sizeof(char) * 2 + 1;
-			char* ack = malloc(msg_len); /* send message */
+			char* ack = malloc(msg_len); 
 			ack[0] = seq_number[0];
 			ack[1] = seq_number[1];
 			s.acks_generated += 1;
-			printf("ACK %c generated\n", ack[1]);
-
+			printf("ACK %c generated\n", ack[0]);
 
 			//if there was no ack loss
 			if(simulate_loss(ack_loss_rate) == 1)	
@@ -181,12 +180,12 @@ int main(void)
 				bytes_sent = sendto(sock_server, ack, msg_len, 0,
 							(struct sockaddr*) &client_addr, client_addr_len);
 				s.acks_without_loss += 1;
-				printf("ACK %c transmitted\n", ack[1]);
+				printf("ACK %c transmitted\n", ack[0]);
 			}
 			//there was an ack loss
 			else
 			{
-				printf("ACK %c lost\n", ack[1]);
+				printf("ACK %c lost\n", ack[0]);
 				s.acks_lost += 1;
 			}
 		}

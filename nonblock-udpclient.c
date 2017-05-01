@@ -266,9 +266,11 @@ int main(int argc, char* argv[]) {
 		printf("\nThe server responded!\n");//TODO print ACK number or something
     }
 	
-	char goodbye[2];
+	char goodbye[4];
 	goodbye[0]='0';
 	goodbye[1]='0';
+	goodbye[2]=curSequence;
+	goodbye[3]=0;
    fclose(file);
 	bytes_sent = sendto(sock_client, goodbye, sizeof(goodbye)+1, 0,
 				(struct sockaddr *) &server_addr, sizeof (server_addr));
