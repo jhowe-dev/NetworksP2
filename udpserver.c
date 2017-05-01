@@ -74,7 +74,7 @@ int main(void)
    unsigned int client_addr_len;  /* Length of client address structure */
 
    char sentence[STRING_SIZE];  /* receive message */
-   char ack[STRING_SIZE]; /* send message */
+   char ack[2]; /* send message */
    unsigned int msg_len;  /* length of message */
    int bytes_sent, bytes_recd; /* number of bytes sent or received */
    unsigned int i;  /* temporary loop variable */
@@ -168,7 +168,8 @@ int main(void)
 			/* generate an ACK */
 			msg_len = sizeof(char) * 2 + 1;
 			ack[0] = 0;
-			ack[1] = (seq_number[1] == 0)? (1):(0);
+			ack[1] = (seq_number[1] == '0')? ('1'):('0');
+			printf("%c \n", ack[1]);
 			s.acks_generated += 1;
 
 			//if there was no ack loss
@@ -183,7 +184,7 @@ int main(void)
 			//there was an ack loss
 			else
 			{
-				printf("ACK %s lost\n", ack[1]);
+				printf("ACK %c lost\n", ack[1]);
 				s.acks_lost += 1;
 			}
 		}
