@@ -40,6 +40,8 @@ int main(int argc, char* argv[]) {
 
    int fcntl_flags; /* flags used by the fcntl function to set socket
                        for non-blocking operation */
+	
+	//store the values for the ending statistics
 	int packets_sent = 0;
 	int total_bytes_sent = 0;
 	int retransmitted_packets = 0;
@@ -117,11 +119,20 @@ int main(int argc, char* argv[]) {
    server_addr.sin_port = htons(server_port);
 
    /* user interface */
-	
+
+	//ensure that proper arguments were supplied
+	if(argc < 2)
+	{
+		printf("Please provide a file to read (arg1) and an exponent for the timeout (arg2) \n");
+		exit(0);
+	}
+	//file to read from command line
 	char const* const fileName = argv[1]; /* should check that argc > 1 */
+	//timeout exponent from command line
 	int tout = atoi(argv[2]);
+	
+	//timeout value
 	double const timeout_value = pow(10.0, (double)tout);
-	printf("%lf \n",timeout_value);
    
 	FILE* file = fopen(fileName, "r"); /* should check the result */
    
@@ -131,41 +142,45 @@ int main(int argc, char* argv[]) {
 	char curSequence = '0';
 	
 	char currentAck;
-	//TODO CLean this up.  Get those Doc points
 	while (fgets(line, sizeof(line), file)) {
 		//move the read line into the packet array
 		memcpy(packet + 4, line, 80);
-		
-		//TODO add in correct size info..
+	
+		//add initial 0 values for size
 		packet[0] = '0';
-		packet[1] = '5';
+		packet[1] = '0';
+		
+		//get the size of the data being sent
 		int str = (int) strlen(line);
+		total_bytes_sent += str;
 		int firstDigit = 0;
 		int lastDigit = 0;
-		printf("%d \n", str);
+
+		//split the size into 2 digits to be put in the packet header
 		if(str >= 10)
 		{
+			//split digits using % and /
 			firstDigit = str / 10;
 			lastDigit = str % 10;	
-			printf("Tens: %d, ones:%d \n",firstDigit,lastDigit);
 		}
 		else
 		{
+			//split digit using %
 			lastDigit = str % 10;
-			printf("Ones: %d \n",lastDigit);
 		}
+		//Char representation of the digits
 		char first = '0' + firstDigit;
 		char last = '0' + lastDigit;
+		//add the size for the packet header
 		packet[0] = first;
 		packet[1] = last;
-		printf("Packet: %s\n",packet);
+		
 		//Sequence number
 		packet[2] = curSequence;
 		packet[3] = '0';
 
+		//length of packet to be sent
 		msg_len = sizeof(packet) +1;
-		//debug info, shows packet structure
-		printf("%s \n", packet);
 
 		/*Create the variables to store the times before starting time!*/
 		//Stores the Current time during wait
@@ -180,11 +195,12 @@ int main(int argc, char* argv[]) {
 		//structs for times
 		struct timeval startTime;
 		struct timeval currentTime;
-
+		printf("Packet %c transmitted with %c%c data bytes \n",curSequence,first,last);
+	   printf("\n----------------------------\n");	
 		//initially send the packet
 		bytes_sent = sendto(sock_client, packet, sizeof(packet) +1, 0,
 				(struct sockaddr *) &server_addr, sizeof (server_addr));
-		
+		packets_sent++;	
 		//get initial time
 		gettimeofday(&startTime,NULL);
 		
@@ -198,9 +214,10 @@ int main(int argc, char* argv[]) {
 			{
 				bytes_sent = sendto(sock_client, packet, sizeof(packet) +1, 0,
 				(struct sockaddr *) &server_addr, sizeof (server_addr));
-	
-				printf("Packet resent: %s \n",packet);	
 				
+				retransmitted_packets++;	
+				printf("Packet %c retransmitted with %c%c data bytes \n",curSequence,first,last);	
+				printf("\n----------------------------\n");	
 				//re-get time
 				gettimeofday(&startTime,NULL);				
 				
@@ -214,7 +231,7 @@ int main(int argc, char* argv[]) {
 			//non-blocking receive 
 			bytes_recd = recvfrom(sock_client, modifiedSentence, STRING_SIZE, 0,
 						 (struct sockaddr *) 0, (int *) 0);
-			
+			//
 			//get the current time for timeout calculation
 			gettimeofday(&currentTime, NULL);
 
@@ -230,12 +247,8 @@ int main(int argc, char* argv[]) {
 			if(difference > timeout_value)
 			{
 				printf("Timeout Detected! \n");
-				//debug info ---
-				//printf("Time Taken: %lf Threshold: %lf \n", difference, timeout_value);
-				//---TODO remove
-				
-				printf("Retransmitting packet!...\n");
-				
+					
+				printf("\n----------------------------\n");	
 				bytes_recd = 0; // ensure that the packet gets resent;
 				
 				//set the resend flag
@@ -243,41 +256,55 @@ int main(int argc, char* argv[]) {
 
 				//for the final statistics
 				timeouts++;
-				retransmitted_packets++;
 			}
 			else{
 				//debug info
 				//printf("Current time: %lf ; Start Time: %lf \n", ct, st);
 			}
-			/* Note: you can do something else in this loop while
-				waiting for a response from the server
-			*/
+			
 		}
 		while (bytes_recd <= 0);
-		
-		printf("Success on packet \n");	
+	   
+		printf("ACK %s received \n", modifiedSentence);	
+
+		printf("\n----------------------------\n");	
+		acks_received++;	
 		
 		//flip sequence number
 		if(curSequence == '0')
 		{curSequence = '1';}
 		else
 		{curSequence = '0';}
-		
-		printf("\nThe server responded!\n");//TODO print ACK number or something
     }
-	
+
+	//construct the end of transmission packet
 	char goodbye[4];
 	goodbye[0]='0';
 	goodbye[1]='0';
 	goodbye[2]=curSequence;
 	goodbye[3]=0;
-   fclose(file);
+
+   //close the file to be read
+	fclose(file);
+	//send the goodbye packet
 	bytes_sent = sendto(sock_client, goodbye, sizeof(goodbye)+1, 0,
 				(struct sockaddr *) &server_addr, sizeof (server_addr));
   
-   
+   printf("EOT packet with sequence number %c sent with 0 data bytes \n", curSequence);
+
+	printf("\n----------------------------\n");	
    /* close the socket */
 
    close (sock_client);
+	//print the ending stats
+	printf("------------------------------\n");
+	printf("Ending Statistics: \n");
+	printf("Packets sent: %d \n",packets_sent);
+	printf("Total bytes transmitted: %d \n", total_bytes_sent);
+	printf("Retransmissions: %d \n",retransmitted_packets);
+	total_packets_sent = packets_sent + retransmitted_packets;
+	printf("Total packets sent (including retransmissions) %d \n",total_packets_sent);
+	printf("Acks Received: %d \n",acks_received);
+	printf("Timeouts: %d \n", timeouts);
 }//main
 
