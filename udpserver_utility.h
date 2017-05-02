@@ -19,9 +19,13 @@ bool simulate_loss(float loss_rate)
 	return (result > loss_rate);
 }
 
+/*
+ * Struct: stats
+ * Use: To keep all relevant statistical data in one easy to access place
+ */
 typedef struct 
 {
-	// Number of data packets received successfully (without loss, without duplicates)
+	// number of data packets received successfully (without loss, without duplicates)
 	int successful_recv_packets;
 
 	//Total number of data bytes received which are delivered to user (this should be the sum of the count
@@ -53,6 +57,10 @@ typedef struct
 } 
 stats;
 
+/*
+ * create_stats()
+ * Creates and sets all members of stats to 0
+ */
 stats create_stats()
 {
 	stats s;
@@ -68,11 +76,19 @@ stats create_stats()
 	return s;
 }
 
+/*
+ * print_serparator()
+ * Prints out a line for separating text, formatting
+ */
 void print_separator()
 {
 	printf("---------------------------------------------------\n");
 }
 
+/* 
+ * print_stats(stats s)
+ * Given a stats struct, prints all member variables in a readable format
+ */
 void print_stats(stats s)
 {
 	print_separator();
@@ -87,21 +103,3 @@ void print_stats(stats s)
 	printf("Total Time : %d\n", s.total_time);
 	print_separator();
 }
-
-
-/*
-Requirements
-	> Out of sequence or duplicates are discarded
-	> Output recieved data into file (out.txt)
-	> Input files are 80 chars/line
-	> Messages contain 1 line per packet
-	> No checksums
-
-Print Statements
-	> Packet n recieved with c data bytes
-	> Duplicate packet n recieved with c data bytes
-	> Packet n lost
-	> ACK n transmitted
-	> ACK n lost
-	> End of Transmission Packet with (sequence number n) recieved with c data bytes
-*/

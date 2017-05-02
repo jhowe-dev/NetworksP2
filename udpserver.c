@@ -5,45 +5,6 @@
 /* Updated by Alex Szostek */
 /* May 3rd, 2017 */
 
-/*
-Steps of Execution
-	1 Print out port number, ask user for config params
-	2 $(Main Actions)
-	3 Print to out.txt
-*/
-
-/*
-Requirements
-	> Out of sequence or duplicates are discarded
-	> Output recieved data into file (out.txt)
-	> Input files are 80 chars/line
-	> Messages contain 1 line per packet
-	> No checksums
-
-Print Statements
-	> Packet n recieved with c data bytes
-	> Duplicate packet n recieved with c data bytes
-	> Packet n lost
-	> ACK n transmitted
-	> ACK n lost
-	> End of Transmission Packet with (sequence number n) recieved with c data bytes
-
-Statistics
-	> Number of data packets received successfully (without loss, without duplicates)
-	> Total number of data bytes received which are delivered to user (this should be the sum of the count
-	fields of all packets received successfully without loss without duplicates)
-	> Total number of duplicate data packets received (without loss)
-	> Number of data packets received but dropped due to loss
-	> Total number of data packets received (including those that were successful, those lost, and duplicates)
-	> Number of ACKs transmitted without loss
-	> Number of ACKs generated but dropped due to loss
-	> Total number of ACKs generated (with and without loss)
-	> Total elapsed time from start to end in milliseconds as measured by calls to gettimeofday() (This
-	 (time should be measured from the instant when the Receiver finishes opening the connection with
-	 the Sender to the instant when the Receiver closes the output file.)
-
-*/
-
 #include <ctype.h>          /* for toupper */
 #include <stdio.h>          /* for standard I/O functions */
 #include <stdlib.h>         /* for exit */
@@ -125,31 +86,35 @@ int main(void)
 	/* Open output file for writing */
 	FILE* outfile = fopen("out.txt", "w+");
 
+	print_separator();
+
    /* wait for incoming messages in an indefinite loop */
    printf("Waiting for incoming messages on port %hu\n\n", 
                            server_port);
-
    client_addr_len = sizeof (client_addr);
 
-	print_separator();
    for (;;) 
 	{
-
+		//recieve message from client
       bytes_recd = recvfrom(sock_server, &sentence, STRING_SIZE, 0,
                      (struct sockaddr *) &client_addr, &client_addr_len);
 
-		//break down packet	
+		//break down packet into component parts	
 		char count[] = {sentence[0], sentence[1], '\0'};
 		char seq_number[] = {sentence[2], sentence[3], '\0'};
 		printf("Packet %c recieved with %s data bytes\n", seq_number[0], count);
-		s.total_recv_packets += 1;
 
 		//break out of the loop if count = 0, EOT Packet
 		if(count[0] == '0' && count[1] == '0')
 		{
-			printf("End of Transmission Packet with Sequence Number %c recieved with %s data bytes\n", seq_number[0], count);
-			s.successful_recv_packets += 1;
+			printf("End of Transmission Packet with Sequence Number %c recieved with %s data bytes\n",
+					 seq_number[0], count);
 			break;
+		}
+		//keep track of all other recv packets
+		else
+		{
+			s.total_recv_packets += 1;
 		}
 
 		//if there was no loss
