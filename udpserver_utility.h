@@ -95,7 +95,7 @@ void print_stats(stats s)
 	printf("Total Recieved Packets : %d\n", s.total_recv_packets);
 	printf("Successful Recieved Packets : %d\n", s.successful_recv_packets);
 	printf("Duplicate Packets : %d\n", s.duplicate_packets);
-	printf("Data Bytes Sent : %d\n", s.data_bytes_sent);
+	printf("Data Bytes received : %d\n", s.data_bytes_sent);
 	printf("Lost Packets : %d\n", s.lost_packets);
 	printf("ACKS Generated : %d\n", s.acks_generated);
 	printf("ACKS Lost : %d\n", s.acks_lost);
