@@ -143,7 +143,7 @@ int main(void)
 				//flip the sequence number
 				expected_sequence_num = (expected_sequence_num == '0')? '1':'0';
 				//since we're using a character array, we need to convert from char to int
-				s.data_bytes_sent += (count[0] - '0') + (count[1] - '0');
+				s.data_bytes_sent += ((count[0] - '0') * 10) + (count[1] - '0');
 			}
 
 			//if there was no ack loss
