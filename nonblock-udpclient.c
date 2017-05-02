@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
 		int firstDigit = 0;
 		int lastDigit = 0;
 		printf("%d \n", str);
-		if(str > 10)
+		if(str >= 10)
 		{
 			firstDigit = str / 10;
 			lastDigit = str % 10;	
@@ -231,7 +231,7 @@ int main(int argc, char* argv[]) {
 			{
 				printf("Timeout Detected! \n");
 				//debug info ---
-				printf("Time Taken: %lf Threshold: %lf \n", difference, timeout_value);
+				//printf("Time Taken: %lf Threshold: %lf \n", difference, timeout_value);
 				//---TODO remove
 				
 				printf("Retransmitting packet!...\n");
@@ -247,7 +247,7 @@ int main(int argc, char* argv[]) {
 			}
 			else{
 				//debug info
-				printf("Current time: %lf ; Start Time: %lf \n", ct, st);
+				//printf("Current time: %lf ; Start Time: %lf \n", ct, st);
 			}
 			/* Note: you can do something else in this loop while
 				waiting for a response from the server

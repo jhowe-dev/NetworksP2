@@ -145,7 +145,7 @@ int main(void)
 		s.total_recv_packets += 1;
 
 		//break out of the loop if count = 0, EOT Packet
-		if(count[1] == '0')
+		if(count[0] == '0' && count[1] == '0')
 		{
 			printf("End of Transmission Packet with Sequence Number %c recieved with %s data bytes\n", seq_number[0], count);
 			s.successful_recv_packets += 1;
