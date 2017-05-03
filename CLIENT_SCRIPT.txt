@@ -2,10 +2,8 @@ Script started on Wed 03 May 2017 05:27:41 PM EDT
 ]0;szosy@n541la: ~/dev/NetworksP2szosy@n541la:~/dev/NetworksP2$ ls -l
 total 48
 -rw-r--r-- 1 szosy szosy    0 May  3 17:27 CLIENT_SCRIPT.txt
--rw-r--r-- 1 szosy szosy   32 May  1 19:41 in.txt
 -rw-r--r-- 1 szosy szosy  248 Apr 30 15:28 Makefile
 -rw-r--r-- 1 szosy szosy 9651 May  3 17:20 nonblock-udpclient.c
--rw-r--r-- 1 szosy szosy   69 Apr 30 13:25 README.md
 -rw-r--r-- 1 szosy szosy 1757 May  1 20:01 test1.txt
 -rw-r--r-- 1 szosy szosy 3414 Apr 30 16:00 test2.txt
 -rw-r--r-- 1 szosy szosy  692 Apr 30 13:25 testFile.c
@@ -17,14 +15,11 @@ total 48
 ]0;szosy@n541la: ~/dev/NetworksP2szosy@n541la:~/dev/NetworksP2$ ls -l
 total 76
 -rw-r--r-- 1 szosy szosy     0 May  3 17:27 CLIENT_SCRIPT.txt
--rw-r--r-- 1 szosy szosy    32 May  1 19:41 in.txt
 -rw-r--r-- 1 szosy szosy   248 Apr 30 15:28 Makefile
 -rwxr-xr-x 1 szosy szosy 12496 May  3 17:28 [0m[01;32mnonblock-udpclient[0m
 -rw-r--r-- 1 szosy szosy  9651 May  3 17:20 nonblock-udpclient.c
--rw-r--r-- 1 szosy szosy    69 Apr 30 13:25 README.md
 -rw-r--r-- 1 szosy szosy  1757 May  1 20:01 test1.txt
 -rw-r--r-- 1 szosy szosy  3414 Apr 30 16:00 test2.txt
--rw-r--r-- 1 szosy szosy   692 Apr 30 13:25 testFile.c
 -rwxr-xr-x 1 szosy szosy 11560 May  3 17:28 [01;32mudpserver[0m
 -rw-r--r-- 1 szosy szosy  5630 May  2 17:03 udpserver.c
 -rw-r--r-- 1 szosy szosy  2865 May  3 17:20 udpserver_utility.h
