@@ -1,0 +1,43 @@
+\begin{center}
+{\bf PROGRAMMING PROJECT 2\\ }
+\end{center}
+
+%\vspace{0.3in}
+\noindent
+
+In this project, you will implement a Transport Layer protocol
+to transmit data from a Sender to a Receiver in the presence of
+errors and packet loss. The protocol to be implemented by you
+is the Stop-and-Wait protocol. The protocol will be
+unidirectional in which data is sent in one direction only
+with acknowledgments being sent in the reverse direction.
+Only positive ACKs are used. The transmission of packets
+and ACKs will be done over UDP (that represents an unreliable
+network layer channel) using fixed UDP ports.
+
+
+To implement this protocol, you will write two separate
+programs called {\em Sender} and {\em Receiver} which
+represent the actions to be executed by the sending node and
+the receiving node respectively. Both the Sender and the
+Receiver must run on the host {\em cis450.cis.udel.edu},
+but they should be written in such a way that they could
+conceivably be run on any two hosts, not necessarily the same.
+
+\begin{verbatim}
+    <----------------- 16 bits (2 bytes) ------------------>
+    --------------------------------------------------------
+    |              Count (no. of data bytes)               |
+    --------------------------------------------------------
+    |                Packet Sequence Number                |
+    --------------------------------------------------------
+    |            Data Bytes      |          ...            |
+    --------------------------------------------------------
+\end{verbatim}
+
+The second field of the header is called the
+packet sequence number. Each
+packet transmitted by the Sender is assigned
+a sequence number that alternates between 0 and 1,
+in accordance with the Stop-and-Wait protocol.
+
