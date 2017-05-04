@@ -296,7 +296,7 @@ int main(int argc, char* argv[]) {
    printf("EOT packet with sequence number %c sent with 0 data bytes \n", curSequence);
 	double total_end_time = (1000000.0*end_time.tv_sec)+ end_time.tv_usec;
 	double total_start_time = (1000000.0*initial_start_time.tv_sec) + initial_start_time.tv_usec;
-	double final_time = total_end_time - total_start_time;
+	double final_time = (total_end_time - total_start_time)/1000.0;
 	
 	printf("\n----------------------------\n");	
    /* close the socket */
@@ -313,8 +313,6 @@ int main(int argc, char* argv[]) {
 	printf("Acks Received: %d \n",acks_received);
 	printf("Timeouts: %d \n", timeouts);
 	printf("Elapsed Time \n");
-	printf("Start Time: %lf \n", total_start_time);
-	printf("End Time: %lf \n", total_end_time);
 	printf("Elapsed: %lf", final_time);
 }//main
 
