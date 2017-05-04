@@ -142,6 +142,8 @@ int main(int argc, char* argv[]) {
 	char curSequence = '0';
 	
 	char currentAck;
+	struct timeval initial_start_time;
+	gettimeofday(&initial_start_time, NULL);
 	while (fgets(line, sizeof(line), file)) {
 		//move the read line into the packet array
 		memcpy(packet + 4, line, 80);
@@ -289,9 +291,13 @@ int main(int argc, char* argv[]) {
 	//send the goodbye packet
 	bytes_sent = sendto(sock_client, goodbye, sizeof(goodbye)+1, 0,
 				(struct sockaddr *) &server_addr, sizeof (server_addr));
-  
+	struct timeval end_time;
+	gettimeofday(&end_time, NULL);	
    printf("EOT packet with sequence number %c sent with 0 data bytes \n", curSequence);
-
+	double total_end_time = (1000000.0*end_time.tv_sec)+ end_time.tv_usec;
+	double total_start_time = (1000000.0*initial_start_time.tv_sec) + initial_start_time.tv_usec;
+	double final_time = total_end_time - total_start_time;
+	
 	printf("\n----------------------------\n");	
    /* close the socket */
 
@@ -306,5 +312,9 @@ int main(int argc, char* argv[]) {
 	printf("Total packets sent (including retransmissions) %d \n",total_packets_sent);
 	printf("Acks Received: %d \n",acks_received);
 	printf("Timeouts: %d \n", timeouts);
+	printf("Elapsed Time \n");
+	printf("Start Time: %lf \n", total_start_time);
+	printf("End Time: %lf \n", total_end_time);
+	printf("Elapsed: %lf", final_time);
 }//main
 
